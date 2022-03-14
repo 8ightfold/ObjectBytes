@@ -9,7 +9,7 @@
 template <class T>
 void _bytes(T& item) {
     
-    typedef std::remove_reference<decltype(item)>::type T_val;
+    using T_val = typename std::remove_reference<decltype(item)>::type;
 
     int bytes = sizeof(item), childBytes;
     char bytes_print[sizeof(item)] = {};
@@ -32,9 +32,11 @@ void _bytes(T& item) {
 };
 template <class T>
 void _bytes(T* (&item)) {
-    typedef std::remove_reference<decltype(item)>::type T_val;
+    
+    using T_val = typename std::remove_reference<decltype(item)>::type;
+    using T_val_child = typename std::remove_pointer<T_val>::type;
 
-    int bytes = sizeof(item), childBytes;
+    int bytes = sizeof(item), childBytes = sizeof(T_val_child);
     char bytes_print[sizeof(item)] = {};
     memcpy((void*)&bytes_print, &item, sizeof(bytes_print));
 
@@ -42,7 +44,7 @@ void _bytes(T* (&item)) {
 
     ss << "\x1b[38;5;202mPointer:\x1b[38;5;223m " << typeid(T_val).name()
         << " (Pointer: " << bytes << ((bytes > 1) ? " Bytes;" : " Byte;")
-        << " Pointee: " << sizeof(*item) << " Bytes): "
+        << " Pointee: " << childBytes << " Bytes): "
         << std::hex << std::uppercase;
 
     for (auto& c : bytes_print) {
@@ -52,7 +54,13 @@ void _bytes(T* (&item)) {
             << (int)abs(c)
             << " ";
     }
-
+    
+    if(!item){
+        ss << "\n\x1b[38;5;216m Pointee:\x1b[38;5;223m N/A (nullptr)";
+        std::cout << ss.str() << "\n" << "\x1b[38;5;15m";
+        return;
+    }
+    
     ss << (char)(0x08);
     std::cout << ss.str() << "\n";
     std::cout << "\x1b[38;5;216m Pointee:\x1b[38;5;223m ";
@@ -61,7 +69,7 @@ void _bytes(T* (&item)) {
 };
 template <class T, size_t N>
 void _bytes(T (&item)[N]) {
-    typedef std::remove_reference<decltype(item)>::type T_val;
+    using T_val = typename std::remove_reference<decltype(item)>::type;
     static_assert(std::is_array<T_val>::value, "Must be an array.");
 
     int bytes = sizeof(item), childBytes;
@@ -77,7 +85,7 @@ void _bytes(T (&item)[N]) {
     int len = childBytes / bytes;
     ss << "\x1b[38;5;159mParent:\x1b[38;5;195m " << typeid(T_val).name()
         << " (Total size: " << bytes << ((bytes > 1) ? " Bytes;" : " Byte;")
-        << " Index size: " << childBytes << ((childBytes > 1) ? " Bytes):" : " Byte):")
+        << " Element size: " << childBytes << ((childBytes > 1) ? " Bytes):" : " Byte):")
         << std::hex << std::uppercase;
     std::cout << ss.str() << "\n";
     for (auto& child : item_a) {
