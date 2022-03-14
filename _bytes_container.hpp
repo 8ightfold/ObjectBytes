@@ -19,6 +19,7 @@
 #include <type_traits>
 
 //specialize a type for all of the STL containers.
+//source: https://stackoverflow.com/a/31105859
 namespace is_stl_container_impl {
 	template <typename T>       struct is_stl_container :std::false_type {};
 	template <typename T, std::size_t N> struct is_stl_container<std::array    <T, N>> :std::true_type {};
